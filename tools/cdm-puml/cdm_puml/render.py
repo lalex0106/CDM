@@ -5,31 +5,9 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Iterable, Optional, Sequence
 
-from .compatibility import CdmEntityDefinition, CdmObjectType
+from .compatibility import CdmEntityDefinition
 from .i18n import I18nDicts, attr_label, entity_label
-
-
-def _derive_domain(entity_def: CdmEntityDefinition) -> str:
-    name = entity_def.entity_name
-    if "." in name:
-        return name.split(".", 1)[0]
-    doc = getattr(entity_def, "in_document", None)
-    folder = getattr(doc, "folder", None)
-    folder_path = getattr(folder, "folder_path", "")
-    parts = [p for p in folder_path.split("/") if p]
-    if parts:
-        return parts[-1]
-    return "Global"
-
-
-def _sanitize_identifier(domain: str, name: str) -> str:
-    identifier = f"{domain}_{name}" if domain else name
-    return (
-        identifier.replace(" ", "_")
-        .replace("-", "_")
-        .replace("/", "_")
-        .replace(".", "_")
-    )
+from .model_utils import derive_domain, iter_type_attributes, sanitize_identifier
 
 
 def _render_attribute_lines(
@@ -41,9 +19,7 @@ def _render_attribute_lines(
     bilingual: bool,
 ) -> list[str]:
     lines: list[str] = []
-    for attr in getattr(entity_def, "attributes", []) or []:
-        if attr.object_type != CdmObjectType.TYPE_ATTRIBUTE_DEF:
-            continue
+    for attr in iter_type_attributes(entity_def):
         name = getattr(attr, "name", "") or "attribute"
         data_ref = getattr(attr, "data_type", None)
         data_type = getattr(data_ref, "named_reference", None)
@@ -65,8 +41,8 @@ def render_entity_block(
     bilingual: bool,
     show_attributes: bool,
 ) -> str:
-    domain = _derive_domain(entity_def)
-    identifier = _sanitize_identifier(domain, entity_def.entity_name)
+    domain = derive_domain(entity_def)
+    identifier = sanitize_identifier(domain, entity_def.entity_name)
     label = entity_label(
         i18n, domain, entity_def.entity_name, lang_primary, lang_fallback, bilingual
     )
@@ -96,10 +72,10 @@ def render_relationships(
     for src, dst, is_many, prop in sorted(relationships):
         src_def = repo.get(src)
         dst_def = repo.get(dst)
-        src_domain = _derive_domain(src_def) if src_def else ""
-        dst_domain = _derive_domain(dst_def) if dst_def else ""
-        src_id = _sanitize_identifier(src_domain, src)
-        dst_id = _sanitize_identifier(dst_domain, dst)
+        src_domain = derive_domain(src_def) if src_def else ""
+        dst_domain = derive_domain(dst_def) if dst_def else ""
+        src_id = sanitize_identifier(src_domain, src)
+        dst_id = sanitize_identifier(dst_domain, dst)
         label = attr_label(i18n, src_domain, src, prop, lang_primary, lang_fallback, bilingual)
         lines.append(
             f"{src_id} \"1\" -- \"{'0..*' if is_many else '0..1'}\" {dst_id} : {label}"
@@ -112,8 +88,8 @@ def render_inheritance_edges(edges: Iterable[tuple[str, str]], repo) -> list[str
     for parent, child in sorted(edges):
         parent_def = repo.get(parent)
         child_def = repo.get(child)
-        parent_id = _sanitize_identifier(_derive_domain(parent_def) if parent_def else "", parent)
-        child_id = _sanitize_identifier(_derive_domain(child_def) if child_def else "", child)
+        parent_id = sanitize_identifier(derive_domain(parent_def) if parent_def else "", parent)
+        child_id = sanitize_identifier(derive_domain(child_def) if child_def else "", child)
         lines.append(f"{parent_id} <|-- {child_id}")
     return lines
 

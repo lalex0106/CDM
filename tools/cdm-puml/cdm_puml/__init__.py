@@ -7,5 +7,6 @@ __all__ = [
     "traversal",
     "i18n",
     "render",
+    "model_utils",
     "inheritance",
 ]

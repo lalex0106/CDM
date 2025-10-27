@@ -57,13 +57,23 @@ python tools/cdm-puml/generate_puml.py \
   --depth 2
 ```
 
+### 5. 导出翻译模板
+```bash
+python tools/cdm-puml/generate_translation_template.py \
+  --languages zh en \
+  --output-dir tools/cdm-puml/dist/i18n/templates
+```
+上述命令会遍历指定清单中的全部实体及其属性，按照 `domain/name/lang/label` 与 `domain/entity/attr/lang/label` 结构分别生成空白模板，便于后续批量翻译。通过 `--format xlsx` 可直接输出 Excel 文件。
+
 ## 常见问题 (FAQ)
 
 **Q: 环境只安装了 `commondatamodel.objectmodel` 或 `cdm.objectmodel` 其中之一可以吗？**  
 A: 可以，`cdm_puml.compatibility` 会优先尝试 `cdm.objectmodel`，若导入失败会自动回退到 `commondatamodel.objectmodel`。
 
-**Q: 翻译资源如何组织？**  
+**Q: 翻译资源如何组织？**
 A: `entities.csv` 至少包含列 `domain,name,lang,label`，`attributes.csv` 包含 `domain,entity,attr,lang,label`。当主语言缺失时会尝试使用备用语言，若启用双语模式会以 `主（副）` 的形式拼接。
+
+若需要一次性获取所有可翻译条目，可执行 `generate_translation_template.py` 生成空白模板，再填入翻译后置于 `overrides/i18n/` 目录即可。
 
 **Q: 如何提升大图渲染性能？**  
 A: 可使用 `--hide-attributes` 降低输出体量，或通过 `--resources` 精确指定聚焦实体并控制 `--depth`。
@@ -75,5 +85,6 @@ A: 在 `config/inheritance_overrides.yaml` 中按照示例配置 `add/remove/rep
 
 - `tools/cdm-puml/dist/puml/`：生成的 PlantUML 文件。
 - `tools/cdm-puml/dist/docs/api_resources.yaml`：资源索引（若启用 `--dump-resource-index`）。
+- `tools/cdm-puml/dist/i18n/templates/`：自动导出的翻译模板（CSV/Excel）。
 
 欢迎根据自身业务模型扩展脚本，并结合 PlantUML 渲染生成更丰富的文档与图谱。
