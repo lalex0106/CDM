@@ -1,0 +1,3 @@
+domain,entity,attr,lang,label
+core,Product,Name,zh,名称
+core,Product,Description,zh,描述

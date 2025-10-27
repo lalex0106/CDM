@@ -1,0 +1,6 @@
+# Example overrides for inheritance relationships.
+# CdsStandard:
+#   replace: [BaseStandard]
+# Party:
+#   add: [Actor]
+#   remove: [ObsoleteParent]
