@@ -1,0 +1,11 @@
+roots:
+  - name: core_products
+    resources:
+      - Product
+      - ProductCategory
+      - ProductPrice
+  - name: party
+    resources:
+      - Party
+      - Organization
+      - Person
